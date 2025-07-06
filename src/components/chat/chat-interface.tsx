@@ -83,9 +83,19 @@ export function ChatInterface({ initialMessages = [] }: ChatInterfaceProps) {
           <div className="text-center py-8">
             <Bot className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-lg font-semibold mb-2">AI旅行相談にようこそ！</h3>
-            <p className="text-muted-foreground">
-              どのような旅行をお考えですか？予算や期間、行きたい場所などをお聞かせください。
+            <p className="text-muted-foreground mb-4">
+              予算3万円以内で実現可能な具体的な旅行プランを提案します。<br />
+              以下のような情報をお聞かせください：
             </p>
+            <div className="text-left bg-muted/50 rounded-lg p-4 max-w-md mx-auto">
+              <h4 className="font-semibold text-sm mb-2">例：相談内容</h4>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                <li>• 「3万円で京都2泊3日の旅行プランを教えて」</li>
+                <li>• 「1万円で日帰り温泉旅行のプランは？」</li>
+                <li>• 「初めての一人旅でおすすめの場所は？」</li>
+                <li>• 「カップルで楽しめる関東の旅行先は？」</li>
+              </ul>
+            </div>
           </div>
         )}
         
