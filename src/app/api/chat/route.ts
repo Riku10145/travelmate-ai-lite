@@ -7,6 +7,15 @@ interface ChatRequest {
     role: 'user' | 'assistant';
     content: string;
   }>;
+  preferences?: {
+    budget?: number | string;
+    duration?: number;
+    groupSize?: number;
+    groupType?: string;
+    transportation?: string;
+    interests?: string[];
+    departureLocation?: string;
+  };
 }
 
 // Gemini AI クライアントの初期化
@@ -14,7 +23,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export async function POST(request: NextRequest) {
   try {
-    const { message, messages = [] }: ChatRequest = await request.json();
+    const { message, messages = [], preferences }: ChatRequest = await request.json();
 
     if (!message) {
       return NextResponse.json(
@@ -26,8 +35,8 @@ export async function POST(request: NextRequest) {
     // Gemini 1.5 Flash モデルを使用（無料枠が豊富）
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
-    // 旅行相談専用のシステムプロンプト
-    const systemPrompt = `あなたは親切で知識豊富な旅行相談のプロフェッショナルです。
+    // 旅行相談専用のシステムプロンプト（ヒアリング結果を活用）
+    let systemPrompt = `あなたは親切で知識豊富な旅行相談のプロフェッショナルです。
 予算3万円以内で実現可能な具体的で実用的な旅行プランを提案してください。
 
 ## 必須要素
@@ -62,6 +71,33 @@ export async function POST(request: NextRequest) {
 - [具体的なTipsや注意点]
 
 友人に相談されているような親しみやすい口調で、実際に使える情報を提供してください。`;
+
+    // ヒアリング結果がある場合、システムプロンプトを強化
+    if (preferences) {
+      systemPrompt += `\n\n## ユーザーのヒアリング結果
+以下の情報を必ず反映してプランを作成してください：`;
+      
+      if (preferences.budget) {
+        systemPrompt += `\n- 予算: ${preferences.budget === 'custom' ? '要相談（柔軟に対応）' : `${preferences.budget}円以内`}`;
+      }
+      if (preferences.duration) {
+        systemPrompt += `\n- 期間: ${preferences.duration === 1 ? '日帰り' : `${preferences.duration}日間`}`;
+      }
+      if (preferences.groupSize && preferences.groupType) {
+        systemPrompt += `\n- 人数・タイプ: ${preferences.groupSize}名（${preferences.groupType}）`;
+      }
+      if (preferences.transportation) {
+        systemPrompt += `\n- 希望交通手段: ${preferences.transportation}`;
+      }
+      if (preferences.interests && preferences.interests.length > 0) {
+        systemPrompt += `\n- 興味・重視すること: ${preferences.interests.join(', ')}`;
+      }
+      if (preferences.departureLocation) {
+        systemPrompt += `\n- 出発地: ${preferences.departureLocation}`;
+      }
+      
+      systemPrompt += `\n\nこれらの条件に完全に合致する旅行プランを提案してください。`;
+    }
 
     // 会話履歴を構築
     let conversationHistory = systemPrompt + '\n\n';

@@ -145,3 +145,43 @@ export interface TrackingResponse {
   trackingUrl: string;
   affiliateUrl: string;
 }
+
+// Interactive Hearing System Types
+export interface HearingStep {
+  id: string;
+  type: 'question' | 'confirmation' | 'result';
+  question: string;
+  options?: HearingOption[];
+  required: boolean;
+  nextStep?: string;
+}
+
+export interface HearingOption {
+  id: string;
+  label: string;
+  value: string;
+  nextStep?: string;
+}
+
+export interface UserPreferences {
+  destination?: string;
+  budget?: number | string;
+  duration?: number;
+  groupSize?: number;
+  groupType?: 'solo' | 'couple' | 'family' | 'friends';
+  transportation?: 'train' | 'car' | 'bus' | 'plane' | 'mixed';
+  accommodation?: 'hotel' | 'ryokan' | 'minshuku' | 'hostel' | 'any';
+  interests?: string[];
+  season?: 'spring' | 'summer' | 'autumn' | 'winter';
+  departureLocation?: string;
+  priorities?: string[];
+}
+
+export interface HearingSession {
+  id: string;
+  currentStep: string;
+  preferences: UserPreferences;
+  completedSteps: string[];
+  startedAt: string;
+  completed: boolean;
+}
