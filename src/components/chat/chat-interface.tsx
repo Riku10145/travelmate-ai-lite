@@ -28,30 +28,53 @@ export function ChatInterface({ initialMessages = [] }: ChatInterfaceProps) {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = inputValue;
     setInputValue("");
     setIsLoading(true);
 
-    setTimeout(() => {
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: currentInput,
+          messages: messages,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'チャットAPIでエラーが発生しました');
+      }
+
+      const data = await response.json();
+      
       const aiResponse: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: generateMockResponse(),
+        content: data.message,
         timestamp: new Date().toISOString(),
       };
+      
       setMessages(prev => [...prev, aiResponse]);
+    } catch (error) {
+      console.error('Chat error:', error);
+      
+      const errorMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: `申し訳ございません。${error instanceof Error ? error.message : 'エラーが発生しました。'}`,
+        timestamp: new Date().toISOString(),
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
-  const generateMockResponse = (): string => {
-    const responses = [
-      "素晴らしい旅行プランのアイデアですね！予算3万円以内で、以下のような旅行プランはいかがでしょうか？",
-      "お客様のご希望に合わせて、コストパフォーマンスの高い旅行プランを提案させていただきます。",
-      "地域の特色を活かした観光スポットや、美味しいグルメ情報も含めてプランを作成いたします。",
-      "交通費や宿泊費を抑えながら、充実した旅行体験ができるプランを考えてみましょう。",
-    ];
-    return responses[Math.floor(Math.random() * responses.length)];
-  };
 
   return (
     <div className="flex flex-col h-full">
